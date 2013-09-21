@@ -4,7 +4,6 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 /**
- * User: Jigsaw
  * Date: 9/21/13
  * Time: 1:50 PM
  */
