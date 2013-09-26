@@ -28,13 +28,21 @@ public class PiNetwork {
             if (input.equals("1")) {
                 // Start server
                 LOG.info("Waiting for connection...");
-                server = new Server();
-                server.start();
+                server = new Server(64300);
+                try {
+                    server.run();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             } else if (input.equals("2")) {
                 // Start client
                 LOG.info("Attempting to connect to server...");
-                client = new Client();
-                client.start();
+                client = new Client("localhost", 64300, 100);
+                try {
+                    client.run();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
     }

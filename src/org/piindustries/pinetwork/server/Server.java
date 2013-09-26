@@ -1,10 +1,15 @@
 package org.piindustries.pinetwork.server;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.ServerSocket;
-import java.net.Socket;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 
 /**
  * Date: 9/21/13
@@ -13,22 +18,51 @@ import java.net.Socket;
 
 public class Server {
 
-    private static ServerSocket sSocket;
-    private static Socket cSocket;
-    private static BufferedReader br;
-    private static String inputLine;
+    private final int port;
 
-    public void start() {
+    public Server(int port) {
+        this.port = port;
+    }
+
+    public void run() throws Exception {
+        // Configure the server.
+        EventLoopGroup bossGroup = new NioEventLoopGroup();
+        EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
-            sSocket = new ServerSocket(63400);
-            cSocket = sSocket.accept();
-            br = new BufferedReader(new InputStreamReader(cSocket.getInputStream()));
-            while ((inputLine = br.readLine()) != null) {
-                System.out.println(inputLine);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+            ServerBootstrap b = new ServerBootstrap();
+            b.group(bossGroup, workerGroup)
+                    .channel(NioServerSocketChannel.class)
+                    .option(ChannelOption.SO_BACKLOG, 100)
+                    .handler(new LoggingHandler(LogLevel.INFO))
+                    .childHandler(new ChannelInitializer<SocketChannel>() {
+                        @Override
+                        public void initChannel(SocketChannel ch) throws Exception {
+                            ch.pipeline().addLast(
+                                    //new LoggingHandler(LogLevel.INFO),
+                                    new ServerHandler());
+                        }
+                    });
+
+            // Start the server.
+            ChannelFuture f = b.bind(port).sync();
+
+            // Wait until the server socket is closed.
+            f.channel().closeFuture().sync();
+        } finally {
+            // Shut down all event loops to terminate all threads.
+            bossGroup.shutdownGracefully();
+            workerGroup.shutdownGracefully();
         }
+    }
+
+    public static void main(String[] args) throws Exception {
+        int port;
+        if (args.length > 0) {
+            port = Integer.parseInt(args[0]);
+        } else {
+            port = 8080;
+        }
+        new Server(port).run();
     }
 
 }
