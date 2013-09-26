@@ -64,26 +64,4 @@ public class Client {
             group.shutdownGracefully();
         }
     }
-
-    public static void main(String[] args) throws Exception {
-        // Print usage if no argument is specified.
-        if (args.length < 2 || args.length > 3) {
-            System.err.println(
-                    "Usage: " + Client.class.getSimpleName() +
-                            " <host> <port> [<first message size>]");
-            return;
-        }
-
-        // Parse options.
-        final String host = args[0];
-        final int port = Integer.parseInt(args[1]);
-        final int firstMessageSize;
-        if (args.length == 3) {
-            firstMessageSize = Integer.parseInt(args[2]);
-        } else {
-            firstMessageSize = 256;
-        }
-
-        new Client(host, port, firstMessageSize).run();
-    }
 }
